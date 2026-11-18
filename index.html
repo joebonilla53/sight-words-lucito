@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lucito Words</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(160deg, #1a2a4a 0%, #0d1b2a 100%); color:#fff; min-height:100vh; overflow-x:hidden; }
+  .screen { display:none; padding: 24px 16px; max-width: 600px; margin: 0 auto; }
+  .screen.active { display:block; }
+  h1 { font-size: 2rem; text-align:center; margin-bottom: 8px; }
+  .sub { text-align:center; font-size: 1.1rem; opacity:0.8; margin-bottom: 28px; }
+  .btn { display:block; width:100%; padding: 22px; margin: 14px 0; border:none; border-radius: 20px; font-size: 1.4rem; font-weight:bold; cursor:pointer; background: linear-gradient(135deg, #4fc3f7, #0288d1); color:#fff; box-shadow: 0 6px 20px rgba(2,136,209,0.4); }
+  .btn:active { transform: scale(0.97); }
+  .btn.green { background: linear-gradient(135deg, #66bb6a, #2e7d32); box-shadow: 0 6px 20px rgba(46,125,50,0.4); }
+  .btn.orange { background: linear-gradient(135deg, #ffb74d, #ef6c00); box-shadow: 0 6px 20px rgba(239,108,0,0.4); }
+  .cards { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+  .card { aspect-ratio: 1; border-radius: 24px; border: 4px solid transparent; background: #fff; display:flex; align-items:center; justify-content:center; font-size: 2.2rem; cursor:pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.3); transition: transform 0.15s; }
+  .card:active { transform: scale(0.94); }
+  .card.correct { border-color: #66bb6a; background: #e8f5e9; }
+  .card.wrong { border-color: #ef5350; background: #ffebee; }
+  .star-row { text-align:center; font-size: 1.6rem; margin: 16px 0; min-height: 2rem; }
+  .word-display { text-align:center; font-size: 3.5rem; font-weight: 900; letter-spacing: 2px; margin: 20px 0; text-transform: uppercase; }
+  .dash-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 16px; }
+  .dash-item { aspect-ratio: 1; border-radius: 12px; display:flex; align-items:center; justify-content:center; font-size: 0.85rem; font-weight:bold; text-transform: uppercase; }
+  .dash-item.gray { background:#37474f; color:#90a4ae; }
+  .dash-item.yellow { background:#f9a825; color:#fff; }
+  .dash-item.green { background:#43a047; color:#fff; }
+  .stats { text-align:center; margin: 16px 0; font-size: 1.1rem; }
+  .score { text-align:center; font-size: 2.5rem; font-weight:bold; margin: 24px 0; }
+  .back { background:none; border:none; color:#90caf9; font-size: 1rem; padding: 8px 0; cursor:pointer; }
+  @media (max-width: 400px) { .word-display { font-size: 2.6rem; } .card { font-size: 1.8rem; } }
+</style>
+</head>
+<body>
+
+<div id="home" class="screen active">
+  <h1>Lucito Words</h1>
+  <p class="sub">Tap a button and let's play!</p>
+  <button class="btn" onclick="startPlay()">Play Today</button>
+  <button class="btn green" onclick="showDashboard()">My Dashboard</button>
+  <button class="btn orange" onclick="startTest()">Take the Test</button>
+</div>
+
+<div id="play" class="screen">
+  <button class="back" onclick="goHome()">Back</button>
+  <div class="word-display" id="playWord"></div>
+  <div class="star-row" id="stars"></div>
+  <div class="cards" id="cardGrid"></div>
+</div>
+
+<div id="dashboard" class="screen">
+  <button class="back" onclick="goHome()">Back</button>
+  <h1>Dashboard</h1>
+  <div class="stats" id="dashStats"></div>
+  <div class="dash-grid" id="dashGrid"></div>
+</div>
+
+<div id="test" class="screen">
+  <button class="back" onclick="goHome()">Back</button>
+  <h1>Word Test</h1>
+  <div class="word-display" id="testWord"></div>
+  <div class="cards" id="testCards"></div>
+  <div class="score" id="testScore"></div>
+</div>
+
+<script>
+const WORDS = [
+  // Week 1
+  {word:'a',week:1},{word:'and',week:1},{word:'away',week:1},{word:'big',week:1},{word:'blue',week:1},
+  {word:'can',week:1},{word:'come',week:1},{word:'down',week:1},{word:'find',week:1},{word:'for',week:1},
+  // Week 2
+  {word:'funny',week:2},{word:'go',week:2},{word:'help',week:2},{word:'here',week:2},{word:'I',week:2},
+  {word:'jump',week:2},{word:'little',week:2},{word:'look',week:2},{word:'make',week:2},{word:'my',week:2},
+  // Week 3
+  {word:'not',week:3},{word:'one',week:3},{word:'play',week:3},{word:'red',week:3},{word:'run',week:3},
+  {word:'said',week:3},{word:'see',week:3},{word:'three',week:3},{word:'two',week:3},{word:'up',week:3},
+  // Week 4
+  {word:'we',week:4},{word:'where',week:4},{word:'yellow',week:4},{word:'you',week:4}
+];
+
+const CAR_EMOJIS = ['🚗','🚙','🚕','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🏍️','🛵','🚲','🛴','✈️','🚁','🚀','🛸'];
+
+let state = loadState();
+let sessionStars = 0;
+let testState = { queue:[], index:0, correct:0 };
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem('sightWordsLucito'));
+    if (s && s.words) return s;
+  } catch(e) {}
+  return {
+    words: WORDS.map(w => ({...w, attempts:0, correct:0, streak:0, mastered:false})),
+    currentWeek: 1,
+    sessions: []
+  };
+}
+function saveState() { localStorage.setItem('sightWordsLucito', JSON.stringify(state)); }
+
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = 0.85;
+  u.pitch = 1.1;
+  const voices = speechSynthesis.getVoices();
+  const female = voices.find(v => /female|samantha|karen|moira|tessa|victoria/i.test(v.name));
+  if (female) u.voice = female;
+  speechSynthesis.speak(u);
+}
+
+function goHome() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('home').classList.add('active);
+  speak('Hi Lucito! Tap a button to play.');
+}
+
+function startPlay() {
+  sessionStars = 0;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('play').classList.add('active);
+  nextRound();
+}
+
+function nextRound() {
+  const weekWords = state.words.filter(w => w.week === state.currentWeek && !w.mastered);
+  const pool = weekWords.length ? weekWords : state.words.filter(w => w.week === state.currentWeek);
+  const target = pool[Math.floor(Math.random()*pool.length)];
+  const others = state.words.filter(w => w.word !== target.word);
+  const distractors = [];
+  while (distractors.length < 3) {
+    const d = others[Math.floor(Math.random()*others.length)];
+    if (!distractors.includes(d)) distractors.push(d);
+  }
+  const cards = [target, ...distractors].sort(() => Math.random()-0.5);
+  document.getElementById('playWord').textContent = target.word;
+  document.getElementById('stars').textContent = '⭐'.repeat(sessionStars);
+  const grid = document.getElementById('cardGrid);
+  grid.innerHTML = '';
+  cards.forEach(c => {
+    const div = document.createElement('div);
+    div.className = 'card';
+    div.textContent = CAR_EMOJIS[Math.floor(Math.random()*CAR_EMOJIS.length)];
+    div.onclick = () => handleTap(c.word === target.word, target, div);
+    grid.appendChild(div);
+  });
+  speak(target.word);
+}
+
+function handleTap(correct, target, cardEl) {
+  const w = state.words.find(x => x.word === target.word);
+  w.attempts++;
+  if (correct) {
+    w.correct++;
+    w.streak++;
+    sessionStars++;
+    if (w.streak >= 3) w.mastered = true;
+    cardEl.classList.add('correct);
+    speak('Yes! ' + target.word + '! Great job!');
+    saveState();
+    setTimeout(nextRound, 1200);
+  } else {
+    w.streak = 0;
+    cardEl.classList.add('wrong);
+    speak('Try again! The word is ' + target.word);
+    saveState();
+    setTimeout(() => { cardEl.classList.remove('wrong'); }, 900);
+  }
+}
+
+function showDashboard() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('dashboard').classList.add('active);
+  const mastered = state.words.filter(w => w.mastered).length;
+  const totalAttempts = state.words.reduce((a,w)=>a+w.attempts,0);
+  const totalCorrect = state.words.reduce((a,w)=>a+w.correct,0);
+  const acc = totalAttempts ? Math.round(totalCorrect/totalAttempts*100) : 0;
+  document.getElementById('dashStats').innerHTML = `Week ${state.currentWeek} of 4<br>Mastered: ${mastered} of 40<br>Accuracy: ${acc}%`;
+  const grid = document.getElementById('dashGrid);
+  grid.innerHTML = '';
+  state.words.forEach(w => {
+    const div = document.createElement('div);
+    div.className = 'dash-item ' + (w.mastered ? 'green' : w.attempts ? 'yellow' : 'gray);
+    div.textContent = w.word;
+    grid.appendChild(div);
+  });
+}
+
+function startTest() {
+  const weekWords = state.words.filter(w => w.week === state.currentWeek);
+  testState = { queue: weekWords.sort(()=>Math.random()-0.5).slice(0,10), index:0, correct:0 };
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('test').classList.add('active);
+  document.getElementById('testScore').textContent = '';
+  nextTestQ();
+}
+
+function nextTestQ() {
+  if (testState.index >= testState.queue.length) {
+    const pass = testState.correct >= 8;
+    document.getElementById('testScore').textContent = testState.correct + ' out of 10' + (pass ? ' — You passed! 🎉' : ' — Try again tomorrow!');
+    if (pass && state.currentWeek < 4) {
+      state.currentWeek++;
+      saveState();
+      speak('You passed! New words next week!');
+    } else speak('Score: ' + testState.correct + ' out of 10.');
+    return;
+  }
+  const target = testState.queue[testState.index];
+  const others = state.words.filter(w => w.word !== target.word);
+  const distractors = [];
+  while (distractors.length < 3) {
+    const d = others[Math.floor(Math.random()*others.length)];
+    if (!distractors.includes(d)) distractors.push(d);
+  }
+  const cards = [target, ...distractors].sort(() => Math.random()-0.5);
+  document.getElementById('testWord').textContent = target.word;
+  const grid = document.getElementById('testCards);
+  grid.innerHTML = '';
+  cards.forEach(c => {
+    const div = document.createElement('div);
+    div.className = 'card';
+    div.textContent = CAR_EMOJIS[Math.floor(Math.random()*CAR_EMOJIS.length)];
+    div.onclick = () => {
+      if (c.word === target.word) { testState.correct++; div.classList.add('correct'); speak('Yes!'); }
+      else { div.classList.add('wrong'); speak('Not quite.'); }
+      testState.index++;
+      setTimeout(nextTestQ, 1100);
+    };
+    grid.appendChild(div);
+  });
+  speak(target.word);
+}
+
+// Kick off greeting
+window.addEventListener('load', () => {
+  setTimeout(() => speak('Hi Lucito! Tap Play Today to start.'), 600);
+});
+</script>
+</body>
+</html>
