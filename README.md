@@ -1,27 +1,25 @@
-# Sight Words Lucito
+# Lucito Learning (Sight Words + Counting + Letters)
 
-Dolch pre-primer sight word game for a 5-year-old. Audio-first, minimal text, tablet-friendly.
+Combined tool and lesson plan for Lucito (age 5, pre-reader, counts to ~20). Audio-first, tablet-friendly, car-themed where possible. Built by combining two Grok sessions: the original sight-words app + the Buddy counting/letter-sounds game.
+
+## Modes
+1. **Sight Words** (main index.html) — Dolch pre-primer, 4 weeks × 10 words, mastery tests, dashboard.
+2. **Counting & Letter Sounds** (counting-letters.html) — one-to-one counting of objects, letter-sound matching. Star rewards.
 
 ## Stack
-- Single HTML file, zero dependencies. Runs in any browser.
-- Text-to-speech via Web Speech API (built into Fire tablet browsers).
-- Progress saved to localStorage on the device.
+- Single HTML files, zero dependencies.
+- Web Speech API for audio.
+- localStorage for progress.
 
 ## Docs
-- docs/REQUIREMENTS.md — what we're building and why
-- docs/FUNCTIONAL-SPEC.md — screens, flows, data model
-- docs/BUILD.md — how to build, deploy, install on Fire tablet
+- docs/REQUIREMENTS.md
+- docs/FUNCTIONAL-SPEC.md
+- docs/BUILD.md
+- docs/COMBINED-LESSON-PLAN.md — full 4-week plan integrating words, numbers, and letters.
 
 ## Deploy
-GitHub Pages: Settings > Pages > Source: main branch, root. URL: https://joebonilla53.github.io/sight-words-lucito/
-Install on Fire tablet: open URL in Silk, menu > Add to Home screen.
-
-## Curriculum
-Dolch pre-primer, 40 words, 4 weeks x 10 words. Mastery test each Friday.
-Week 1: a, and, away, big, blue, can, come, down, find, for
-Week 2: funny, go, help, here, I, jump, little, look, make, my
-Week 3: not, one, play, red, run, said, see, three, two, up
-Week 4: we, where, yellow, you
+GitHub Pages: https://joebonilla53.github.io/sight-words-lucito/
+Fire tablet: open in Silk → Add to Home screen. Open counting-letters.html for numbers/letters mode.
 
 ## ACE Tag
-Project: sight-words-lucito. Lane: family-edtech. Owner: Joe. Status: building.
+Project: sight-words-lucito (now Lucito Learning). Lane: family-edtech. Owner: Joe. Status: combined and building.

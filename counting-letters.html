@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Buddy's Fun Learning Game</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Comic Sans MS', 'Chalkboard SE', system-ui, sans-serif;
+  background: linear-gradient(135deg, #87CEEB, #98FB98);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  touch-action: manipulation;
+}
+h1 { color: #2c3e50; text-align: center; margin: 10px 0; font-size: 1.8em; }
+.character { font-size: 4em; margin: 10px; animation: bounce 2s infinite; }
+@keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-15px);} }
+.menu, .game { width: 100%; max-width: 600px; text-align: center; }
+button, .num-btn, .letter-btn {
+  font-size: 1.5em;
+  padding: 15px 25px;
+  margin: 8px;
+  border: none;
+  border-radius: 20px;
+  background: #FFD700;
+  color: #333;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  min-width: 80px;
+  min-height: 70px;
+}
+button:active, .num-btn:active, .letter-btn:active { transform: scale(0.95); }
+.objects { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 20px; min-height: 150px; }
+.object { font-size: 3em; cursor: pointer; transition: transform 0.2s; }
+.object:active { transform: scale(1.2); }
+.feedback { font-size: 1.5em; margin: 15px; min-height: 40px; font-weight: bold; }
+.stars { font-size: 2em; }
+.correct { color: #27ae60; }
+.wrong { color: #e74c3c; }
+#score { font-size: 1.3em; margin: 10px; }
+.hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="character">🐻</div>
+<h1>Buddy's Learning Adventure!</h1>
+<div id="score">Stars: <span id="starCount">0</span> ⭐</div>
+
+<div id="menu" class="menu">
+  <button onclick="startGame('count')">🔢 Counting Game</button>
+  <button onclick="startGame('letters')">🔤 Letter Sounds</button>
+  <button onclick="speak('Hi friend! Let\'s play and learn together!')">👋 Say Hi</button>
+</div>
+
+<div id="countGame" class="game hidden">
+  <h2>How many?</h2>
+  <div id="objects" class="objects"></div>
+  <div id="countFeedback" class="feedback"></div>
+  <div id="numButtons"></div>
+  <button onclick="nextCount()">Next!</button>
+  <button onclick="goMenu()">Menu</button>
+</div>
+
+<div id="letterGame" class="game hidden">
+  <h2>Find the letter!</h2>
+  <div id="letterPrompt" style="font-size:2em; margin:20px;"></div>
+  <div id="letterButtons"></div>
+  <div id="letterFeedback" class="feedback"></div>
+  <button onclick="nextLetter()">Next!</button>
+  <button onclick="goMenu()">Menu</button>
+</div>
+
+<script>
+let stars = parseInt(localStorage.getItem('buddyStars') || '0');
+document.getElementById('starCount').textContent = stars;
+
+const objects = ['🍎','🍌','🚗','⭐','🐶','🐱','⚽','🎈','🍕','🍪'];
+const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const sounds = {
+  A:'ay', B:'buh', C:'kuh', D:'duh', E:'eh', F:'fff', G:'guh', H:'huh', I:'eye', J:'juh',
+  K:'kuh', L:'luh', M:'mmm', N:'nnn', O:'oh', P:'puh', Q:'kwuh', R:'rrr', S:'sss', T:'tuh',
+  U:'uh', V:'vvv', W:'wuh', X:'ks', Y:'yuh', Z:'zzz'
+};
+
+function speak(text) {
+  if ('speechSynthesis' in window) {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 0.9;
+    utter.pitch = 1.1;
+    speechSynthesis.speak(utter);
+  }
+}
+
+function addStar() {
+  stars++;
+  localStorage.setItem('buddyStars', stars);
+  document.getElementById('starCount').textContent = stars;
+}
+
+function startGame(type) {
+  document.getElementById('menu').classList.add('hidden');
+  document.getElementById('countGame').classList.add('hidden');
+  document.getElementById('letterGame').classList.add('hidden');
+  if (type === 'count') {
+    document.getElementById('countGame').classList.remove('hidden');
+    nextCount();
+  } else {
+    document.getElementById('letterGame').classList.remove('hidden');
+    nextLetter();
+  }
+  speak(type === 'count' ? 'Let\'s count!' : 'Let\'s learn letters!');
+}
+
+function goMenu() {
+  document.getElementById('menu').classList.remove('hidden');
+  document.getElementById('countGame').classList.add('hidden');
+  document.getElementById('letterGame').classList.add('hidden');
+  speak('Back to menu!');
+}
+
+let currentCount = 0;
+let counted = 0;
+
+function nextCount() {
+  currentCount = Math.floor(Math.random() * 5) + 1;
+  counted = 0;
+  const obj = objects[Math.floor(Math.random() * objects.length)];
+  const container = document.getElementById('objects');
+  container.innerHTML = '';
+  for (let i = 0; i < currentCount; i++) {
+    const span = document.createElement('span');
+    span.className = 'object';
+    span.textContent = obj;
+    span.onclick = () => countObject(span);
+    container.appendChild(span);
+  }
+  document.getElementById('countFeedback').textContent = 'Tap each one to count!';
+  document.getElementById('numButtons').innerHTML = '';
+  speak('How many ' + getObjectName(obj) + '? Tap them one by one!');
+}
+
+function getObjectName(emoji) {
+  const names = {'🍎':'apples','🍌':'bananas','🚗':'cars','⭐':'stars','🐶':'dogs','🐱':'cats','⚽':'balls','🎈':'balloons','🍕':'pizzas','🍪':'cookies'};
+  return names[emoji] || 'things';
+}
+
+function countObject(el) {
+  if (el.dataset.counted) return;
+  el.dataset.counted = 'true';
+  el.style.opacity = '0.6';
+  counted++;
+  const words = ['one','two','three','four','five','six','seven','eight','nine','ten'];
+  speak(words[counted-1] || counted);
+  if (counted === currentCount) {
+    setTimeout(() => {
+      document.getElementById('countFeedback').innerHTML = '<span class="correct">Great! Now tap the number!</span>';
+      showNumberButtons();
+      speak('How many did you count?');
+    }, 500);
+  }
+}
+
+function showNumberButtons() {
+  const div = document.getElementById('numButtons');
+  div.innerHTML = '';
+  const options = [currentCount];
+  while (options.length < 4) {
+    let n = Math.floor(Math.random() * 10) + 1;
+    if (!options.includes(n)) options.push(n);
+  }
+  options.sort(() => Math.random() - 0.5);
+  options.forEach(n => {
+    const btn = document.createElement('button');
+    btn.className = 'num-btn';
+    btn.textContent = n;
+    btn.onclick = () => checkCount(n);
+    div.appendChild(btn);
+  });
+}
+
+function checkCount(selected) {
+  const fb = document.getElementById('countFeedback');
+  if (selected === currentCount) {
+    fb.innerHTML = '<span class="correct">Awesome! ⭐</span>';
+    speak('Great job! You got it!');
+    addStar();
+  } else {
+    fb.innerHTML = '<span class="wrong">Try again!</span>';
+    speak('Oops, try again!');
+  }
+}
+
+let currentLetter = '';
+
+function nextLetter() {
+  currentLetter = letters[Math.floor(Math.random() * letters.length)];
+  document.getElementById('letterPrompt').textContent = 'What letter makes the sound...';
+  document.getElementById('letterFeedback').textContent = '';
+  document.getElementById('letterButtons').innerHTML = '';
+  speak('Find the letter that says ' + sounds[currentLetter]);
+  showLetterButtons();
+}
+
+function showLetterButtons() {
+  const div = document.getElementById('letterButtons');
+  const options = [currentLetter];
+  while (options.length < 4) {
+    let l = letters[Math.floor(Math.random() * letters.length)];
+    if (!options.includes(l)) options.push(l);
+  }
+  options.sort(() => Math.random() - 0.5);
+  options.forEach(l => {
+    const btn = document.createElement('button');
+    btn.className = 'letter-btn';
+    btn.textContent = l;
+    btn.style.fontSize = '2em';
+    btn.onclick = () => checkLetter(l);
+    div.appendChild(btn);
+  });
+}
+
+function checkLetter(selected) {
+  const fb = document.getElementById('letterFeedback');
+  if (selected === currentLetter) {
+    fb.innerHTML = '<span class="correct">Yes! ' + selected + ' says ' + sounds[selected] + '! ⭐</span>';
+    speak('Yes! ' + selected + ' says ' + sounds[selected] + '. Great job!');
+    addStar();
+  } else {
+    fb.innerHTML = '<span class="wrong">Not that one. Listen again.</span>';
+    speak('Try again. The sound is ' + sounds[currentLetter]);
+  }
+}
+
+setTimeout(() => speak('Hi! I am Buddy the bear. Ready to play?'), 500);
+</script>
+</body>
+</html>
